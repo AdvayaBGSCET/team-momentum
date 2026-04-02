@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OceanRaksha API Connection Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #0a1628; color: #e6edf3; }
+        .test { margin: 20px 0; padding: 15px; background: #0d1b2e; border-radius: 8px; }
+        .success { border-left: 4px solid #56d364; }
+        .error { border-left: 4px solid #f85149; }
+        .loading { border-left: 4px solid #f59e0b; }
+        pre { background: #111d2e; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        button { background: #0ea5e9; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0284c7; }
+    </style>
+</head>
+<body>
+    <h1>🌊 OceanRaksha API Connection Test</h1>
+    
+    <div id="results"></div>
+    
+    <button onclick="testAll()">Run All Tests</button>
+    <button onclick="location.reload()">Clear</button>
+
+    <script>
+        const results = document.getElementById('results');
+
+        async function testEndpoint(name, url, options = {}) {
+            const testDiv = document.createElement('div');
+            testDiv.className = 'test loading';
+            testDiv.innerHTML = `<h3>${name}</h3><p>Testing ${url}...</p>`;
+            results.appendChild(testDiv);
+
+            try {
+                const response = await fetch(url, options);
+                const data = await response.json();
+                
+                testDiv.className = 'test success';
+                testDiv.innerHTML = `
+                    <h3>✅ ${name}</h3>
+                    <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                    <p><strong>URL:</strong> ${url}</p>
+                    <pre>${JSON.stringify(data, null, 2).substring(0, 500)}${JSON.stringify(data).length > 500 ? '...' : ''}</pre>
+                `;
+            } catch (error) {
+                testDiv.className = 'test error';
+                testDiv.innerHTML = `
+                    <h3>❌ ${name}</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p><strong>URL:</strong> ${url}</p>
+                `;
+            }
+        }
+
+        async function testAll() {
+            results.innerHTML = '';
+            
+            // Test 1: Direct backend connection
+            await testEndpoint(
+                'Backend Direct - Pollution Data',
+                'http://localhost:5001/api/pollution'
+            );
+
+            // Test 2: Through Vite proxy
+            await testEndpoint(
+                'Vite Proxy - Pollution Data',
+                '/api/pollution'
+            );
+
+            // Test 3: Sea conditions
+            await testEndpoint(
+                'Sea Conditions API',
+                '/api/sea-conditions?lat=19.04&lng=72.84'
+            );
+
+            // Test 4: Water quality
+            await testEndpoint(
+                'Water Quality API',
+                '/api/water-quality/WQMS_KA_001'
+            );
+
+            // Test 5: Claude advisory
+            await testEndpoint(
+                'Claude Advisory API',
+                '/api/advisory',
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        location: { name: 'Mumbai Mahim Creek', lat: 19.04, lng: 72.84 },
+                        weatherData: { temp: 28, windSpeed: 5.2, source: 'Test' },
+                        waterData: { do: 4.8, turbidity: 6.2, source: 'Test' },
+                        lang: 'en'
+                    })
+                }
+            );
+        }
+
+        // Auto-run tests on load
+        window.onload = testAll;
+    </script>
+</body>
+</html>
