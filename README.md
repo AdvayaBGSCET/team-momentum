@@ -279,7 +279,7 @@ MIT License - See LICENSE file for details
 
 ## 👥 Team
 
-**Team Momentum** - BGSCET College
+**Team Momentum** - Alliance University 
 
 ---
 
